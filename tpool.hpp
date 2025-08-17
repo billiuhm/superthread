@@ -55,9 +55,7 @@ public:
 
     // Batch task addition
     template <typename F, typename... Args>
-    auto addTaskBatch(size_t count, F&& f, Args&&... args) 
-        -> std::vector<std::future<std::invoke_result_t<F, Args...>>> 
-    {
+    auto addTaskBatch(size_t count, F&& f, std::vector<Args&&...> args) -> std::vector<std::future<std::invoke_result_t<F, Args...>>> {
         using ReturnType = std::invoke_result_t<F, Args...>;
         std::vector<std::future<ReturnType>> futures;
         futures.reserve(count);
@@ -68,7 +66,7 @@ public:
             
             for (size_t i = 0; i < count; ++i) {
                 auto task = std::packaged_task<ReturnType()>(
-                    [func = std::forward<F>(f), ...args = std::forward<Args>(args)]() mutable {
+                    [func = std::forward<F>(f), ...args = std::forward<Args>(args[i])]() mutable {
                         return func(std::forward<Args>(args)...);
                     });
                     
